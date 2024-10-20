@@ -5,6 +5,16 @@ Content-Type: application/json
 
 {}
 
+
+###
+# @name status
+POST http://localhost:8080/status
+Content-Type: application/json
+
+{
+  "id": "d4384b19-5d9a-41e4-87cf-a94925f687c9"
+}
+
 ###
 # @name move
 POST http://localhost:8080/move

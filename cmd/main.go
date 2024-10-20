@@ -1,22 +1,28 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
-	"tic_tac_toe/internal/game/handleres"
-	"tic_tac_toe/internal/game/repository"
-	"tic_tac_toe/internal/game/service"
-	"tic_tac_toe/server"
+	"tic_tac_toe/internal/game"
+	"tic_tac_toe/internal/game/http"
+	"tic_tac_toe/internal/server"
 )
 
-func main() {
-	repo := repository.NewRepository()
-	game := service.NewGame(repo)
-	gameHandler := handleres.NewHandler(game)
+var port *int
 
-	port := 8080 // todo
-	srv := server.NewServer(fmt.Sprintf(":%d", port), gameHandler)
+func init() {
+	port = flag.Int("port", 8080, "server port")
+	flag.Parse()
+}
+
+func main() {
+	repo := game.NewRepository()
+	service := game.NewService(repo)
+	gameHandler := http.NewHandler(service)
+
+	srv := server.NewServer(fmt.Sprintf(":%d", *port), gameHandler)
 
 	if err := srv.Run(); err != nil {
 		log.Fatalf("start server: %v", err)
