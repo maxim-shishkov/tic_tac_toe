@@ -5,13 +5,15 @@ import (
 	"fmt"
 )
 
-var ErrFinished = errors.New("game is finished")
-var ErrOccupied = errors.New("cell and row is occupied")
-var ErrNotPlayer = errors.New("not your player")
+var (
+	ErrFinished  = errors.New("game is finished")
+	ErrOccupied  = errors.New("cell and row is occupied")
+	ErrNotPlayer = errors.New("not your player")
+)
 
 type Game struct {
 	ID       string
-	Board    [3][3]string
+	Board    [3][3]string // TODO: для внутреннего представления действительно нужен string?
 	Next     string
 	Winner   *string
 	Finished bool
@@ -36,19 +38,21 @@ func (g *Game) Move(row, col int, player string) error {
 		return ErrNotPlayer
 	}
 
-	g.Board[row][col] = string(player)
+	g.Board[row][col] = player
 
 	winner := g.checkWinner()
 
-	if winner != nil && len(*winner) != 0 {
-		fmt.Println("winner = ", &winner)
+	if winner != nil && len(*winner) != 0 { // TODO: зачем двойная проверка?
+		fmt.Println("winner = ", &winner) // TODO: не взаимодействуем с выводом из бизнес-меотдов
 		g.Winner = winner
 		g.Finished = true
 		return nil
 	}
 
+	// TODO: игра так же заканчивается, если не осталось свободных клеток
+
 	g.Next = switchPlayer(player)
-	return nil
+	return nil // TODO: удобно получить какой-то полезный результат
 }
 
 func (g *Game) checkWinner() *string {

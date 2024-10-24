@@ -6,6 +6,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func p[T any](v T) *T {
+	return &v
+}
+
 func TestGame_checkWinner(t *testing.T) {
 	type fields struct {
 		Board [3][3]string
@@ -13,7 +17,7 @@ func TestGame_checkWinner(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   string
+		want   *string
 	}{
 		{
 			name: "first line X",
@@ -24,7 +28,7 @@ func TestGame_checkWinner(t *testing.T) {
 					{" ", " ", " "},
 				},
 			},
-			want: "X",
+			want: p("X"),
 		},
 		{
 			name: "first line O",
@@ -35,7 +39,7 @@ func TestGame_checkWinner(t *testing.T) {
 					{" ", " ", " "},
 				},
 			},
-			want: "O",
+			want: p("O"),
 		},
 		{
 			name: "second line",
@@ -46,7 +50,7 @@ func TestGame_checkWinner(t *testing.T) {
 					{" ", " ", " "},
 				},
 			},
-			want: "X",
+			want: p("X"),
 		},
 		{
 			name: "third line",
@@ -57,7 +61,7 @@ func TestGame_checkWinner(t *testing.T) {
 					{"X", "X", "X"},
 				},
 			},
-			want: "X",
+			want: p("X"),
 		},
 		{
 			name: "diagonale left",
@@ -68,7 +72,7 @@ func TestGame_checkWinner(t *testing.T) {
 					{" ", " ", "X"},
 				},
 			},
-			want: "X",
+			want: p("X"),
 		},
 		{
 			name: "third right",
@@ -79,7 +83,29 @@ func TestGame_checkWinner(t *testing.T) {
 					{"X", " ", " "},
 				},
 			},
-			want: "X",
+			want: p("X"),
+		},
+		{
+			name: "no one",
+			fields: fields{
+				Board: [3][3]string{
+					{" ", " ", " "},
+					{" ", " ", " "},
+					{" ", " ", " "},
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "no one 2",
+			fields: fields{
+				Board: [3][3]string{
+					{"X", "0", "X"},
+					{"0", "0", "X"},
+					{"X", "X", "0"},
+				},
+			},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -88,7 +114,7 @@ func TestGame_checkWinner(t *testing.T) {
 				Board: tt.fields.Board,
 			}
 			winner := g.checkWinner()
-			assert.Equal(t, tt.want, *winner)
+			assert.Equal(t, tt.want, winner)
 
 		})
 	}

@@ -1,4 +1,4 @@
-package server
+package server // TODO: сервер слишком абстрактно, используй api (и ошибки вытащи из подпакета)
 
 import (
 	"log"
@@ -27,6 +27,7 @@ func (s *Server) Run() error {
 	r.HandleFunc("/move", wrap(s.gameHandler.Move)).Methods("POST")
 	r.HandleFunc("/status", wrap(s.gameHandler.Status)).Methods("POST")
 
-	log.Printf("server is running on %s", s.addr)
+	log.Printf("server is running on %s", s.addr) // TODO: задать себе вопрос: кому нужен этот лог?
+	// TODO: добавить корректную остановку сервера по kill сигналу
 	return http.ListenAndServe(s.addr, r)
 }

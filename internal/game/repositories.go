@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-type Repositories struct {
+type Repositories struct { // TODO: Если это название пакета с репозиториями, то множественное число уместно, а структура в ед числе
 	games map[string]*Game
 }
 
