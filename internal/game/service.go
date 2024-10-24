@@ -15,7 +15,7 @@ func NewService(repo *Repositories) *Service {
 func (g *Service) CreateGame() (*Game, error) {
 	game := NewGame(generateID())
 	if err := g.repo.Save(game); err != nil {
-		return nil, err
+		return nil, err // TODO: нужна обработка ошибки
 	}
 
 	return game, nil
@@ -28,15 +28,15 @@ func generateID() string {
 func (g *Service) Move(id string, row, col int, player string) (*Game, error) {
 	game, err := g.repo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return nil, err // TODO
 	}
 
 	if err := game.Move(row, col, player); err != nil {
-		return nil, err
+		return nil, err // TODO
 	}
 
-	if err := g.repo.Save(game); err != nil {
-		return nil, err
+	if err := g.repo.Save(game); err != nil { // TODO: починить гонку: присылаем 3 хода подряд и получаем XXX
+		return nil, err // TODO
 	}
 
 	return game, nil
@@ -45,7 +45,7 @@ func (g *Service) Move(id string, row, col int, player string) (*Game, error) {
 func (g *Service) Status(id string) (*Game, error) {
 	game, err := g.repo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return nil, err // TODO
 	}
 	return game, nil
 }
