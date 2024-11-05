@@ -13,7 +13,7 @@ import (
 var port *int
 
 func init() {
-	port = flag.Int("port", 8080, "server port")
+	port = flag.Int("port", 80, "server port")
 	flag.Parse()
 }
 

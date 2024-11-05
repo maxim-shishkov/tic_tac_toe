@@ -24,21 +24,38 @@ func wrap(handler func(http.ResponseWriter, *http.Request) (any, error)) http.Ha
 }
 
 func handleError(w http.ResponseWriter, err error) {
+	var apiErr *api.Error
 	httpStatusCode := http.StatusInternalServerError
-	switch true {
-	case errors.Is(err, api.ErrNotFound):
-		httpStatusCode = http.StatusNotFound
-	case errors.Is(err, api.ErrBadRequest) || errors.Is(err, game.ErrFinished) ||
-		errors.Is(err, game.ErrOccupied) || errors.Is(err, game.ErrNotPlayer):
+
+	switch {
+	case errors.Is(err,
+		game.ErrFinished),
+		errors.Is(err, game.ErrOccupied),
+		errors.Is(err, game.ErrNotPlayer):
+		apiErr = api.BadRequest("bad request", err)
 		httpStatusCode = http.StatusBadRequest
 
-	case errors.Is(err, api.ErrInternal):
-		httpStatusCode = http.StatusInternalServerError
+	default:
+		if customErr, ok := err.(*api.Error); ok {
+			apiErr = customErr
+			switch customErr.Code {
+			case api.CodeNotFound:
+				httpStatusCode = http.StatusNotFound
+			case api.CodeBadRequest:
+				httpStatusCode = http.StatusBadRequest
+			case api.CodeInternal:
+				httpStatusCode = http.StatusInternalServerError
+			default:
+				httpStatusCode = http.StatusInternalServerError
+			}
+		} else {
+			apiErr = api.InternalError("internal server error", err)
+			httpStatusCode = http.StatusInternalServerError
+		}
 	}
 
 	w.WriteHeader(httpStatusCode)
-	json.NewEncoder(w).Encode(api.Error{
-		Code: httpStatusCode,
-		Err:  err.Error(),
-	})
+	if encodeErr := json.NewEncoder(w).Encode(apiErr); encodeErr != nil {
+		http.Error(w, "failed to encode error response", http.StatusInternalServerError)
+	}
 }

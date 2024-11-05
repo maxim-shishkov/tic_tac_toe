@@ -3,7 +3,10 @@
 POST http://localhost:8080/new_game
 Content-Type: application/json
 
-{}
+{
+  "symbol_x":"X",
+  "symbol_o":"🐍"
+}
 
 
 ###

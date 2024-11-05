@@ -2,7 +2,7 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"tic_tac_toe/internal/game"
@@ -17,10 +17,20 @@ func NewHandler(service *game.Service) *GameHandler {
 	return &GameHandler{gameService: service}
 }
 
+type CreateRequest struct {
+	SymbolX *string `json:"symbol_x"`
+	SymbolO *string `json:"symbol_o"`
+}
+
 func (h *GameHandler) CreateGame(w http.ResponseWriter, r *http.Request) (any, error) {
-	game, err := h.gameService.CreateGame()
+	var req CreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, api.BadRequest("json.Decode", err)
+	}
+
+	game, err := h.gameService.CreateGame(req.SymbolX, req.SymbolO)
 	if err != nil {
-		return nil, fmt.Errorf("%w:%w", api.ErrInternal, err)
+		return nil, api.InternalError("createGame", err)
 	}
 
 	return game, nil
@@ -36,22 +46,26 @@ type MoveRequest struct {
 func (h *GameHandler) Move(w http.ResponseWriter, r *http.Request) (any, error) {
 	var req MoveRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, fmt.Errorf("%w:%w", api.ErrBadRequest, err)
+		return nil, api.BadRequest("json.Decode", err)
 	}
 
 	if req.Row < 0 || req.Row >= 3 {
-		return nil, fmt.Errorf("%w:%s", api.ErrBadRequest, "row field is outside")
+		return nil, api.BadRequest("req.Row", errors.New("row field is outside"))
 	}
+
 	if req.Col < 0 || req.Col >= 3 {
-		return nil, fmt.Errorf("%w:%s", api.ErrBadRequest, "col field is outside")
+		return nil, api.BadRequest("req.Col", errors.New("col field is outside"))
 	}
 
-	game, err := h.gameService.Move(req.Id, req.Row, req.Col, req.Player)
+	g, err := h.gameService.Move(req.Id, req.Row, req.Col, req.Player)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, game.ErrNotFound) {
+			return nil, api.NotFound("game not found")
+		}
+		return nil, api.InternalError("gameService.Move", err)
 	}
 
-	return game, nil
+	return g, nil
 }
 
 type StatusRequest struct {
@@ -61,13 +75,16 @@ type StatusRequest struct {
 func (h *GameHandler) Status(w http.ResponseWriter, r *http.Request) (any, error) {
 	var req StatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, fmt.Errorf("%w:%w", api.ErrBadRequest, err)
+		return nil, api.BadRequest("json.Decode", err)
 	}
 
-	game, err := h.gameService.Status(req.Id)
+	g, err := h.gameService.Status(req.Id)
 	if err != nil {
-		return nil, fmt.Errorf("%w:%w", api.ErrNotFound, err)
+		if errors.Is(err, game.ErrNotFound) {
+			return nil, api.NotFound("game not found")
+		}
+		return nil, api.InternalError("gameService.Status", err)
 	}
 
-	return game, nil
+	return g, nil
 }

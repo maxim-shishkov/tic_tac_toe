@@ -1,12 +1,13 @@
 package api
 
-import (
-	"errors"
-)
-
 type Error struct {
-	Code int    `json:"code"`
+	Code string `json:"code"`
+	Msg  string `json:msg`
 	Err  string `json:"err"`
+}
+
+func (e *Error) Error() string {
+	return e.Msg
 }
 
 const (
@@ -15,8 +16,25 @@ const (
 	CodeInternal   = "internal_error"
 )
 
-var (
-	ErrNotFound   = errors.New(CodeNotFound)
-	ErrBadRequest = errors.New(CodeBadRequest)
-	ErrInternal   = errors.New(CodeInternal)
-)
+func NotFound(msg string) *Error {
+	return &Error{
+		Code: CodeNotFound,
+		Msg:  msg,
+	}
+}
+
+func BadRequest(msg string, err error) *Error {
+	return &Error{
+		Code: CodeBadRequest,
+		Msg:  msg,
+		Err:  err.Error(),
+	}
+}
+
+func InternalError(msg string, err error) *Error {
+	return &Error{
+		Code: CodeBadRequest,
+		Msg:  msg,
+		Err:  err.Error(),
+	}
+}

@@ -5,9 +5,9 @@ const (
 	PlayerO string = "O"
 )
 
-func switchPlayer(player string) string {
-	if player == PlayerX {
-		return PlayerO
+func (g *Game) switchPlayer(player string) {
+	if player == g.SymbolX {
+		g.Next = g.SymbolO
 	}
-	return PlayerX
+	g.Next = g.SymbolX
 }

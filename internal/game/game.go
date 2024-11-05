@@ -5,23 +5,29 @@ import (
 	"fmt"
 )
 
-var ErrFinished = errors.New("game is finished")
-var ErrOccupied = errors.New("cell and row is occupied")
-var ErrNotPlayer = errors.New("not your player")
+var (
+	ErrFinished  = errors.New("game is finished")
+	ErrOccupied  = errors.New("cell and row is occupied")
+	ErrNotPlayer = errors.New("not your player")
+)
 
 type Game struct {
-	ID       string
-	Board    [3][3]string
-	Next     string
-	Winner   *string
-	Finished bool
+	ID       string       `json:"id"`
+	Board    [3][3]string `json:"board"`
+	Next     string       `json:"next"`
+	Winner   *string      `json:"winner"`
+	Finished bool         `json:"finished"`
+	SymbolX  string       `json:"symbol_X"`
+	SymbolO  string       `json:"symbol_O"`
 }
 
 func NewGame(id string) *Game {
 	return &Game{
-		ID:    id,
-		Next:  PlayerX,
-		Board: [3][3]string{},
+		ID:      id,
+		Next:    PlayerX,
+		Board:   [3][3]string{},
+		SymbolX: PlayerX,
+		SymbolO: PlayerO,
 	}
 }
 
@@ -40,15 +46,29 @@ func (g *Game) Move(row, col int, player string) error {
 
 	winner := g.checkWinner()
 
-	if winner != nil && len(*winner) != 0 {
-		fmt.Println("winner = ", &winner)
+	if winner != nil {
 		g.Winner = winner
 		g.Finished = true
 		return nil
 	}
+	if g.noMoreSpaces() {
+		return fmt.Errorf("free space on the field is over")
+	}
 
-	g.Next = switchPlayer(player)
+	g.switchPlayer(player)
+
 	return nil
+}
+
+func (g *Game) noMoreSpaces() bool {
+	for i := 0; i < len(g.Board); i++ {
+		for j := 0; j < len(g.Board[i]); j++ {
+			if len(g.Board[i][j]) == 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func (g *Game) checkWinner() *string {
@@ -86,15 +106,8 @@ func (g *Game) checkWinner() *string {
 }
 
 func checkWinningLine(line []string) *string {
-	first := line[0]
-	if first == " " {
-		return nil
+	if len(line[0]) != 0 && line[0] == line[1] && line[1] == line[2] {
+		return &line[0]
 	}
-	for _, cell := range line {
-		if cell != first {
-			return nil
-		}
-	}
-	winner := first
-	return &winner
+	return nil
 }
